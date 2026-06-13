@@ -1,55 +1,638 @@
-function normalizar(txt) {
-  return txt
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z ]/g, "");
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bolão Copa 2026 — Liga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a; --bg2:#0d1322; --panel:#131b2e; --panel2:#172139;
+    --line:#22304d; --line2:#2c3c5e;
+    --ink:#eaf0fb; --muted:#8a98b5; --muted2:#5d6a86;
+    --gold:#f3b53c; --gold-dim:#a9821f;
+    --good:#34d399; --good-bg:rgba(52,211,153,.13);
+    --part:#5b9bff; --part-bg:rgba(91,155,255,.13);
+    --bad:#f06d6d; --bad-bg:rgba(240,109,109,.12);
+    --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:
+      radial-gradient(1200px 600px at 80% -10%, #16213b 0%, transparent 60%),
+      radial-gradient(1000px 500px at -10% 10%, #15233f 0%, transparent 55%), var(--bg);
+    color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.45; -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent; padding-bottom:calc(60px + env(safe-area-inset-bottom));}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+  header.top{position:-webkit-sticky; position:sticky; top:0; z-index:50; padding-top:env(safe-area-inset-top);
+    background:linear-gradient(180deg, rgba(10,14,26,.97), rgba(10,14,26,.86));
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  .topgrid{display:flex; align-items:center; gap:16px; padding:12px 16px; flex-wrap:wrap; max-width:1100px; margin:0 auto}
+  .brand h1{font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.4px; font-size:26px; margin:0; line-height:1; text-transform:uppercase}
+  .brand h1 .y{color:var(--gold)}
+  .brand .legend{font-size:12px;color:var(--muted)}
+  .brand .legend b{color:var(--ink)}
+  .hgap{flex:1}
+  .compcount{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:600}
+  .compcount b{color:var(--ink)}
+
+  .controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:14px 0 6px}
+  .seg{display:inline-flex; background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:3px}
+  .seg button{border:0; background:transparent; color:var(--muted); font:inherit; font-weight:600; font-size:13px; padding:7px 13px; border-radius:8px; cursor:pointer; transition:.15s}
+  .seg button.on{background:linear-gradient(135deg,#274071,#1d2c4d); color:#fff; box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .seg button:hover:not(.on){color:var(--ink)}
+  .seg .cap{font-size:11px;color:var(--muted2);padding:0 8px 0 4px;align-self:center;text-transform:uppercase;letter-spacing:.5px}
+  .spacer{flex:1}
+  .fileseg{display:inline-flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:5px 9px}
+  .fileseg .cap{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;padding-right:2px}
+  .btn{border:1px solid var(--line2); background:var(--panel); color:var(--ink); font:inherit; font-weight:600; font-size:13px; padding:8px 12px; border-radius:10px; cursor:pointer}
+  .btn:hover{background:var(--panel2); border-color:#3a507c}
+  .btn.xls{border-color:rgba(52,211,153,.5); color:#bff3df; background:rgba(52,211,153,.10); font-weight:700}
+  .btn.xls:hover{background:rgba(52,211,153,.2); border-color:var(--good); color:#dffaf0}
+  .filehide{display:none}
+
+  .rsec{background:linear-gradient(180deg,var(--panel),#101728); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-bottom:16px; box-shadow:var(--shadow)}
+  .rhead{font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:18px; color:var(--gold); padding:13px 16px; border-bottom:1px solid var(--line); background:linear-gradient(90deg,rgba(243,181,60,.10),transparent); display:flex; align-items:center; gap:10px}
+  .rhead .wd{font-family:Inter;font-weight:500;font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px}
+  .rhead .today{font-family:Inter;font-size:10px;font-weight:700;letter-spacing:.5px;color:#0a0e1a;background:var(--gold);padding:3px 8px;border-radius:6px;text-transform:uppercase}
+  .rhead .cnt{font-family:Inter;font-weight:500;text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted2);margin-left:auto}
+  .rbody{padding:2px 6px 8px}
+
+  table.rank{width:100%;border-collapse:collapse;font-size:13.5px}
+  .rank thead th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);font-weight:600;padding:9px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  .rank thead th.cname{text-align:left;padding-left:14px}
+  .rank tbody tr.rk{cursor:pointer;transition:.12s}
+  .rank tbody tr.rk:hover{background:rgba(255,255,255,.035)}
+  .rank tbody tr.rk.open{background:rgba(91,155,255,.09)}
+  .rank td{padding:9px 8px;text-align:center;border-bottom:1px solid rgba(34,48,77,.5)}
+  .rank td.pos{width:30px;color:var(--muted2);font-family:'JetBrains Mono',monospace}
+  .rank td.cname{text-align:left;padding-left:14px;font-weight:600;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank td.pts{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--gold);font-size:15px}
+  .rank td.exa{color:var(--good)} .rank td.cer{color:var(--part)} .rank td.err{color:var(--bad)}
+  .rank td.chev span{display:inline-block;transition:.2s;color:var(--muted2)}
+  .rank tr.rk.open td.chev span{transform:rotate(180deg)}
+  .rank tr.rk.open td{border-bottom-color:transparent}
+  .medal{font-size:13px;margin-left:3px}
+  .detailrow td{padding:0;border-bottom:1px solid rgba(34,48,77,.5);background:#0b1120}
+  .detailbox{padding:8px 12px 12px;display:flex;flex-direction:column;gap:5px}
+  .dhint{font-size:11px;color:var(--muted2);padding:2px 2px 4px}
+  .dline{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px;padding:7px 9px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+  .dteams{flex:1 1 240px;font-weight:600;min-width:0}
+  .dteams .fl{margin:0 5px} .dteams .vs{color:var(--muted2);margin:0 4px}
+  .ddate{flex:0 0 auto;font-size:10px;color:var(--muted2);font-family:'JetBrains Mono',monospace}
+  .dpr{flex:0 0 auto;font-family:'JetBrains Mono',monospace;color:var(--ink);white-space:nowrap}
+  .dpr .dlab{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin-right:4px;font-family:Inter}
+  .db{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;padding:2px 8px;border-radius:7px;border:1px solid var(--line);color:var(--muted);min-width:42px;text-align:center}
+  .db.p5{color:var(--good);background:var(--good-bg);border-color:rgba(52,211,153,.4)}
+  .db.p3{color:var(--part);background:var(--part-bg);border-color:rgba(91,155,255,.4)}
+  .db.p0{color:var(--bad);background:var(--bad-bg);border-color:rgba(240,109,109,.4)}
+  .db.pend{color:var(--muted2)}
+  .empty{padding:18px;color:var(--muted2);font-size:13px}
+
+  .subseg{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:2px 0 14px}
+  .subseg .cap{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-right:2px}
+  .subseg button{border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:600;font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s}
+  .subseg button.on{background:linear-gradient(135deg,#274071,#1d2c4d);color:#fff;border-color:#3a507c}
+  .subseg button:hover:not(.on){color:var(--ink)}
+  .daysel{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;font:inherit;font-weight:600;font-size:13px;padding:8px 12px;cursor:pointer;min-width:200px}
+  .rank td.pcell{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+  .rank td.pcell.atual{color:var(--good)} .rank td.pcell.total{color:var(--gold)}
+  .rank th.pcol{font-size:9.5px}
+  .decorbanner{margin:8px 8px 14px;padding:12px 15px;border:1px solid rgba(91,155,255,.32);background:linear-gradient(90deg,rgba(91,155,255,.12),transparent);border-radius:12px}
+  .dbinfo{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .dblbl{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700}
+  .dbpct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:23px;color:var(--part);line-height:1}
+  .dbfrac{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted2)}
+  .dbbar{margin-top:9px;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+  .dbbar > i{display:block;height:100%;background:var(--part);border-radius:4px;transition:width .35s}
+
+  .filterwrap{position:relative}
+  #filterBtn{white-space:nowrap}
+  .filterpanel{position:absolute; top:calc(100% + 6px); left:0; z-index:60; background:var(--panel2);
+    border:1px solid var(--line2); border-radius:12px; padding:9px; box-shadow:var(--shadow); min-width:230px; max-height:340px; overflow:auto}
+  .filterpanel .fhead{display:flex; gap:8px; margin-bottom:7px}
+  .filterpanel .fhead button{flex:1; font:inherit; font-size:12px; font-weight:600; padding:7px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--muted); cursor:pointer}
+  .filterpanel .fhead button:hover{color:var(--ink); border-color:var(--line2)}
+  .filterpanel label{display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--ink)}
+  .filterpanel label:hover{background:rgba(255,255,255,.04)}
+  .filterpanel input[type=checkbox]{width:16px; height:16px; accent-color:var(--part); cursor:pointer; flex:0 0 auto}
+
+  .glist{display:flex;flex-direction:column;gap:5px;padding:4px 4px 2px}
+  .gline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 11px;background:var(--panel);border:1px solid var(--line);border-radius:9px}
+  .gline .gbadge{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--gold);background:rgba(243,181,60,.12);border:1px solid rgba(243,181,60,.3);padding:3px 8px;border-radius:6px;white-space:nowrap}
+  .gline .gmatch{flex:1 1 auto;font-weight:600;min-width:0}
+  .gline .gmatch .fl{margin:0 5px}
+  .gline .gscore{font-family:'JetBrains Mono',monospace;color:var(--ink);background:var(--bg2);border:1px solid var(--line2);padding:2px 10px;border-radius:7px;margin:0 4px;font-weight:700}
+  .gline .gtime{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2)}
+
+  footer.note{margin-top:24px;font-size:12px;color:var(--muted2);text-align:center;line-height:1.7}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:#1a2742;border:1px solid var(--line2);color:var(--ink);padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;box-shadow:var(--shadow);transition:.25s;z-index:99;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:560px){
+    .brand{min-width:140px}
+    .rank thead th.hideS,.rank td.hideS{display:none}
+    .dteams{flex:1 1 100%}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topgrid">
+    <div class="brand">
+      <h1>Bolão Copa <span class="y">2026</span> · Liga</h1>
+      <div class="legend"><b>5</b> placar exato · <b>3</b> resultado certo · <b>0</b> erro</div>
+    </div>
+    <div class="hgap"></div>
+    <div class="compcount"><b id="ccount">1</b> concorrentes</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div class="seg" id="viewSeg">
+      <span class="cap">Ver</span>
+      <button data-v="total" class="on">Ranking total</button>
+      <button data-v="rodada">Por rodada</button>
+      <button data-v="dia">Por dia</button>
+      <button data-v="jogos">Jogos concluídos</button>
+    </div>
+    <div class="filterwrap">
+      <button class="btn" id="filterBtn">Concorrentes ▾</button>
+      <div class="filterpanel" id="filterPanel" hidden></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="fileseg">
+      <span class="cap">Planilha</span>
+      <button class="btn xls" id="importBtn" title="Importar a planilha de palpites (.xlsx ou .csv)">↑ Importar palpites</button>
+      <button class="btn" id="modelBtn" title="Baixar o modelo de planilha em branco para preencher">↓ Modelo Excel</button>
+    </div>
+    <input type="file" id="importFile" class="filehide" accept=".xlsx,.xls,.csv">
+  </div>
+
+  <div id="content"></div>
+
+  <footer class="note">
+    No computador, passe o mouse na linha de um concorrente para ver as partidas e os palpites dele; no celular, toque na linha.<br>
+    Os dados ficam só nesta sessão — para guardar, mantenha sua planilha Excel e reimporte quando precisar.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>
+/* ---------- DADOS ---------- */
+const FLAG = {
+  "México":"🇲🇽","África do Sul":"🇿🇦","Coreia do Sul":"🇰🇷","Rep. Tcheca":"🇨🇿",
+  "Canadá":"🇨🇦","Bósnia":"🇧🇦","Catar":"🇶🇦","Suíça":"🇨🇭",
+  "Brasil":"🇧🇷","Marrocos":"🇲🇦","Haiti":"🇭🇹","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Austrália":"🇦🇺","Turquia":"🇹🇷","Estados Unidos":"🇺🇸","Paraguai":"🇵🇾",
+  "Alemanha":"🇩🇪","Curaçao":"🇨🇼","Costa do Marfim":"🇨🇮","Equador":"🇪🇨",
+  "Holanda":"🇳🇱","Japão":"🇯🇵","Suécia":"🇸🇪","Tunísia":"🇹🇳",
+  "Bélgica":"🇧🇪","Egito":"🇪🇬","Irã":"🇮🇷","Nova Zelândia":"🇳🇿",
+  "Espanha":"🇪🇸","Cabo Verde":"🇨🇻","Arábia Saudita":"🇸🇦","Uruguai":"🇺🇾",
+  "França":"🇫🇷","Senegal":"🇸🇳","Iraque":"🇮🇶","Noruega":"🇳🇴",
+  "Argentina":"🇦🇷","Argélia":"🇩🇿","Áustria":"🇦🇹","Jordânia":"🇯🇴",
+  "Portugal":"🇵🇹","RD Congo":"🇨🇩","Uzbequistão":"🇺🇿","Colômbia":"🇨🇴",
+  "Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croácia":"🇭🇷","Gana":"🇬🇭","Panamá":"🇵🇦"
+};
+const GROUPS = {
+  A:["México","África do Sul","Coreia do Sul","Rep. Tcheca"],
+  B:["Canadá","Bósnia","Catar","Suíça"],
+  C:["Brasil","Marrocos","Haiti","Escócia"],
+  D:["Austrália","Turquia","Estados Unidos","Paraguai"],
+  E:["Alemanha","Curaçao","Costa do Marfim","Equador"],
+  F:["Holanda","Japão","Suécia","Tunísia"],
+  G:["Bélgica","Egito","Irã","Nova Zelândia"],
+  H:["Espanha","Cabo Verde","Arábia Saudita","Uruguai"],
+  I:["França","Senegal","Iraque","Noruega"],
+  J:["Argentina","Argélia","Áustria","Jordânia"],
+  K:["Portugal","RD Congo","Uzbequistão","Colômbia"],
+  L:["Inglaterra","Croácia","Gana","Panamá"]
+};
+const RAW = [
+ ["A",1,"México",2,0,"África do Sul","11/06 16:00"],
+ ["A",1,"Coreia do Sul",1,1,"Rep. Tcheca","11/06 23:00"],
+ ["B",1,"Canadá",2,1,"Bósnia","12/06 16:00"],
+ ["B",1,"Catar",0,2,"Suíça","13/06 16:00"],
+ ["C",1,"Brasil",1,0,"Marrocos","13/06 19:00"],
+ ["C",1,"Haiti",0,2,"Escócia","13/06 22:00"],
+ ["D",1,"Austrália",1,2,"Turquia","14/06 01:00"],
+ ["D",1,"Estados Unidos",2,1,"Paraguai","12/06 22:00"],
+ ["E",1,"Alemanha",3,0,"Curaçao","14/06 14:00"],
+ ["E",1,"Costa do Marfim",1,1,"Equador","14/06 20:00"],
+ ["F",1,"Holanda",2,1,"Japão","14/06 17:00"],
+ ["F",1,"Suécia",1,0,"Tunísia","14/06 23:00"],
+ ["G",1,"Bélgica",2,1,"Egito","15/06 16:00"],
+ ["G",1,"Irã",1,0,"Nova Zelândia","15/06 22:00"],
+ ["H",1,"Espanha",3,0,"Cabo Verde","15/06 13:00"],
+ ["H",1,"Arábia Saudita",0,2,"Uruguai","15/06 19:00"],
+ ["I",1,"França",2,0,"Senegal","16/06 16:00"],
+ ["I",1,"Iraque",0,3,"Noruega","16/06 19:00"],
+ ["J",1,"Argentina",2,0,"Argélia","16/06 22:00"],
+ ["J",1,"Áustria",2,0,"Jordânia","17/06 01:00"],
+ ["K",1,"Portugal",2,0,"RD Congo","17/06 14:00"],
+ ["K",1,"Uzbequistão",0,2,"Colômbia","17/06 23:00"],
+ ["L",1,"Inglaterra",1,1,"Croácia","17/06 17:00"],
+ ["L",1,"Gana",2,1,"Panamá","17/06 20:00"],
+ ["A",2,"Rep. Tcheca",1,0,"África do Sul","18/06 13:00"],
+ ["A",2,"México",2,1,"Coreia do Sul","18/06 22:00"],
+ ["B",2,"Suíça",1,0,"Bósnia","18/06 16:00"],
+ ["B",2,"Canadá",2,0,"Catar","18/06 19:00"],
+ ["C",2,"Escócia",0,1,"Marrocos","19/06 19:00"],
+ ["C",2,"Brasil",4,0,"Haiti","19/06 21:30"],
+ ["D",2,"Estados Unidos",2,0,"Austrália","19/06 16:00"],
+ ["D",2,"Turquia",1,1,"Paraguai","20/06 01:00"],
+ ["E",2,"Alemanha",2,1,"Costa do Marfim","20/06 17:00"],
+ ["E",2,"Equador",2,0,"Curaçao","20/06 21:00"],
+ ["F",2,"Holanda",1,1,"Suécia","20/06 14:00"],
+ ["F",2,"Tunísia",0,2,"Japão","21/06 01:00"],
+ ["G",2,"Bélgica",2,0,"Irã","21/06 16:00"],
+ ["G",2,"Nova Zelândia",0,1,"Egito","21/06 22:00"],
+ ["H",2,"Espanha",2,0,"Arábia Saudita","21/06 19:00"],
+ ["H",2,"Uruguai",2,0,"Cabo Verde","21/06 19:00"],
+ ["I",2,"França",3,0,"Iraque","22/06 18:00"],
+ ["I",2,"Noruega",2,1,"Senegal","22/06 21:00"],
+ ["J",2,"Jordânia",0,2,"Argélia","22/06 23:00"],
+ ["J",2,"Argentina",1,1,"Áustria","22/06 14:00"],
+ ["K",2,"Portugal",2,0,"Uzbequistão","23/06 14:00"],
+ ["K",2,"Colômbia",2,0,"RD Congo","23/06 23:00"],
+ ["L",2,"Inglaterra",2,0,"Gana","23/06 17:00"],
+ ["L",2,"Panamá",0,2,"Croácia","23/06 20:00"],
+ ["A",3,"África do Sul",0,2,"Coreia do Sul","24/06 22:00"],
+ ["A",3,"México",1,1,"Rep. Tcheca","24/06 22:00"],
+ ["B",3,"Canadá",1,1,"Suíça","24/06 16:00"],
+ ["B",3,"Bósnia",2,0,"Catar","24/06 16:00"],
+ ["C",3,"Escócia",0,2,"Brasil","24/06 19:00"],
+ ["C",3,"Marrocos",3,0,"Haiti","24/06 19:00"],
+ ["D",3,"Paraguai",1,0,"Austrália","25/06 23:00"],
+ ["D",3,"Estados Unidos",1,1,"Turquia","25/06 23:00"],
+ ["E",3,"Curaçao",0,2,"Costa do Marfim","25/06 17:00"],
+ ["E",3,"Equador",0,1,"Alemanha","25/06 17:00"],
+ ["F",3,"Japão",1,0,"Suécia","25/06 20:00"],
+ ["F",3,"Tunísia",0,2,"Holanda","25/06 20:00"],
+ ["G",3,"Nova Zelândia",0,3,"Bélgica","27/06 00:00"],
+ ["G",3,"Egito",1,1,"Irã","27/06 00:00"],
+ ["H",3,"Uruguai",1,1,"Espanha","26/06 19:00"],
+ ["H",3,"Cabo Verde",1,1,"Arábia Saudita","26/06 21:00"],
+ ["I",3,"Noruega",1,1,"França","26/06 16:00"],
+ ["I",3,"Senegal",2,0,"Iraque","26/06 16:00"],
+ ["J",3,"Argélia",0,1,"Áustria","27/06 23:00"],
+ ["J",3,"Jordânia",0,4,"Argentina","27/06 23:00"],
+ ["K",3,"Colômbia",1,1,"Portugal","27/06 20:30"],
+ ["K",3,"RD Congo",0,1,"Uzbequistão","27/06 20:30"],
+ ["L",3,"Croácia",1,0,"Gana","27/06 18:00"],
+ ["L",3,"Panamá",0,3,"Inglaterra","27/06 18:00"]
+];
+const MATCHES = RAW.map((m,i)=>({id:"m"+i, group:m[0], round:m[1], home:m[2], ph:m[3], pa:m[4], away:m[5], date:m[6]}));
+const byId = {}; MATCHES.forEach(m=>byId[m.id]=m);
+
+/* estado: real + concorrentes (default: "Você" com os palpites do app) */
+let real = {};
+let competitors = [{ name:"Você", palp: Object.fromEntries(MATCHES.map(m=>[m.id,{h:m.ph,a:m.pa}])) }];
+let selected = new Set(competitors.map((_,i)=>i));   // índices visíveis no ranking
+let view = "total";
+let roundSel = 1;
+let daySel = null;
+function pct1(v){ const r=Math.round(v*10)/10; return (Number.isInteger(r)?r:r.toFixed(1))+"%"; }
+function decorridoPct(){ return MATCHES.length ? MATCHES.filter(m=>real[m.id]).length/MATCHES.length*100 : 0; }
+
+/* ---------- HELPERS ---------- */
+const $=s=>document.querySelector(s);
+function flag(t){ return FLAG[t]||"🏳️"; }
+const WEEK=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const MONTHN=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function parseDate(str){ const p=String(str).split(" "); const [d,mo]=p[0].split("/").map(Number);
+  const [hh,mm]=(p[1]||"00:00").split(":").map(Number); return {d,mo,hh,mm,key:p[0],sort:mo*1e6+d*1e4+hh*100+mm}; }
+function todayKey(){ const n=new Date(); return String(n.getDate()).padStart(2,"0")+"/"+String(n.getMonth()+1).padStart(2,"0"); }
+function sign(d){ return d>0?1:(d<0?-1:0); }
+function pts(palp, rv){ if(!palp||!rv||palp.h==null||rv.h==null) return null;
+  if(palp.h===rv.h && palp.a===rv.a) return 5;
+  if(sign(palp.h-palp.a)===sign(rv.h-rv.a)) return 3; return 0; }
+function parseScore(v){ if(v==null) return null; const s=String(v).trim(); if(!s) return null;
+  const m=s.match(/^(\d{1,2})\s*[x\-:\/ ]\s*(\d{1,2})$/i); if(!m) return null;
+  return {h:Math.min(99,+m[1]), a:Math.min(99,+m[2])}; }
+
+/* ---------- RANKING ---------- */
+function rankComps(ids){
+  const totalPts=MATCHES.length*5;
+  const out=[];
+  competitors.forEach((c,ci)=>{
+    if(!selected.has(ci)) return;
+    let total=0,ex=0,ce=0,er=0,pe=0,jog=0;
+    ids.forEach(id=>{ const p=pts(c.palp[id], real[id]);
+      if(p===null){pe++;} else {jog++; if(p===5){ex++;total+=5;} else if(p===3){ce++;total+=3;} else er++;} });
+    out.push({ci, name:c.name, total,ex,ce,er,pe,jog,
+      atualPct: jog>0 ? total/(jog*5)*100 : 0,
+      totalPct: total/totalPts*100 });
+  });
+  return out.sort((a,b)=> b.total-a.total || b.ex-a.ex || b.ce-a.ce || a.name.localeCompare(b.name,"pt"));
 }
 
+let SCOPES = {};
+function rankingTableHTML(scopeId, rows, opts){
+  opts=opts||{};
+  const showPct=!!opts.showPct;
+  const colspan = showPct?9:7;
+  let body="";
+  rows.forEach((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+    const pcells = showPct ? `<td class="pcell atual">${pct1(r.atualPct)}</td><td class="pcell total">${pct1(r.totalPct)}</td>` : "";
+    body+=`<tr class="rk" data-scope="${scopeId}" data-ci="${r.ci}">
+      <td class="pos">${i+1}</td>
+      <td class="cname">${r.name}${medal?`<span class="medal">${medal}</span>`:""}</td>
+      <td class="pts">${r.total}</td>
+      ${pcells}
+      <td class="exa hideS">${r.ex}</td><td class="cer hideS">${r.ce}</td><td class="err hideS">${r.er}</td>
+      <td class="chev"><span>⌄</span></td>
+    </tr>
+    <tr class="detailrow" hidden><td colspan="${colspan}"><div class="detailbox"></div></td></tr>`;
+  });
+  const phead = showPct ? `<th class="pcol" title="aproveitamento sobre os pontos disputados">Atual</th><th class="pcol" title="aproveitamento sobre o total da fase de grupos">Total</th>` : "";
+  return `<table class="rank"><thead><tr>
+    <th class="pos">#</th><th class="cname">Competidor</th><th>Pts</th>
+    ${phead}
+    <th class="hideS" title="placar exato">Exa</th><th class="hideS" title="resultado certo">Cer</th><th class="hideS" title="erro">Err</th><th></th>
+  </tr></thead><tbody>${body}</tbody></table>`;
+}
+function buildDetail(ci, scopeId){
+  const c=competitors[ci]; if(!c) return "";
+  const ids=(SCOPES[scopeId]||[]).slice().sort((a,b)=>parseDate(byId[a].date).sort-parseDate(byId[b].date).sort);
+  let played="", pend="";
+  ids.forEach(id=>{
+    const m=byId[id], rv=real[id], pv=c.palp[id]; const p=pts(pv,rv);
+    const dt=parseDate(m.date);
+    const badge = p===null?`<span class="db pend">a jogar</span>`
+      : p===5?`<span class="db p5">+5</span>`:p===3?`<span class="db p3">+3</span>`:`<span class="db p0">0</span>`;
+    const line=`<div class="dline">
+      <div class="dteams"><span class="fl">${flag(m.home)}</span>${m.home}<span class="vs">x</span>${m.away}<span class="fl">${flag(m.away)}</span></div>
+      <div class="ddate">${m.date}</div>
+      <div class="dpr"><span class="dlab">real</span>${rv?`${rv.h}x${rv.a}`:"—"}</div>
+      <div class="dpr"><span class="dlab">palpite</span>${pv?`${pv.h}x${pv.a}`:"—"}</div>
+      ${badge}</div>`;
+    if(p===null) pend+=line; else played+=line;
+  });
+  const hint=`<div class="dhint">Jogos e palpites de ${c.name} neste recorte (palpite × resultado real):</div>`;
+  return hint + (played||"") + (pend||"") || `<div class="empty">Sem jogos.</div>`;
+}
+
+/* ---------- RENDER ---------- */
+function section(title, inner, extraHead){
+  return `<div class="rsec"><div class="rhead">${title}${extraHead||""}</div><div class="rbody">${inner}</div></div>`;
+}
+function render(){
+  $("#ccount").textContent = competitors.length;
+  SCOPES = {};
+  const c=$("#content");
+  if(selected.size===0 && view!=="jogos"){ c.innerHTML=`<div class="empty">Selecione ao menos um concorrente no filtro <b>Concorrentes</b>.</div>`; return; }
+  if(view==="total"){
+    const ids=MATCHES.map(m=>m.id); SCOPES["total"]=ids;
+    const rows=rankComps(ids);
+    const played = ids.filter(id=>real[id]).length;
+    const dp = decorridoPct();
+    const banner=`<div class="decorbanner">
+      <div class="dbinfo"><span class="dblbl">Fase de grupos decorrida</span>
+        <span class="dbpct">${pct1(dp)}</span>
+        <span class="dbfrac">${played} / ${ids.length} jogos realizados</span></div>
+      <div class="dbbar"><i style="width:${Math.min(100,dp)}%"></i></div>
+    </div>`;
+    c.innerHTML = section("Ranking geral", banner + rankingTableHTML("total", rows, {showPct:true}));
+  } else if(view==="rodada"){
+    const subseg=`<div class="subseg" id="roundSeg">`+
+      [1,2,3].map(rd=>`<button data-round="${rd}" class="${rd===roundSel?"on":""}">Rodada ${rd}</button>`).join("")+`</div>`;
+    const ids=MATCHES.filter(m=>m.round===roundSel).map(m=>m.id); SCOPES["r"+roundSel]=ids;
+    const rows=rankComps(ids);
+    const playedN=ids.filter(id=>real[id]).length;
+    c.innerHTML = subseg + section("Rodada "+roundSel, rankingTableHTML("r"+roundSel, rows),
+      `<span class="cnt">${playedN}/${ids.length} jogos</span>`);
+  } else if(view==="dia"){
+    const byDate={}; MATCHES.forEach(m=>{ const k=parseDate(m.date).key; (byDate[k]=byDate[k]||[]).push(m.id); });
+    const keys=Object.keys(byDate).sort((a,b)=>{ const pa=parseDate(byId[byDate[a][0]].date), pb=parseDate(byId[byDate[b][0]].date); return (pa.mo-pb.mo)||(pa.d-pb.d); });
+    const withRes=keys.filter(k=>byDate[k].some(id=>real[id]));
+    if(!withRes.length){ c.innerHTML=`<div class="empty">Preencha a coluna <b>Real</b> da planilha (resultados dos jogos) e importe para ver o ranking por dia.</div>`; return; }
+    if(!daySel || !withRes.includes(daySel)) daySel = withRes[withRes.length-1];
+    const tk=todayKey();
+    const opts=withRes.map(k=>{ const f=parseDate(byId[byDate[k][0]].date); const wd=WEEK[new Date(2026,f.mo-1,f.d).getDay()];
+      const lbl=`${f.d} de ${MONTHN[f.mo-1]} (${wd})${k===tk?" — hoje":""}`;
+      return `<option value="${k}" ${k===daySel?"selected":""}>${lbl}</option>`; }).join("");
+    const subseg=`<div class="subseg dia"><span class="cap">Dia</span><select id="daySel" class="daysel">${opts}</select></div>`;
+    const ids=byDate[daySel]; const sid="d"+daySel.replace("/",""); SCOPES[sid]=ids;
+    const first=parseDate(byId[ids[0]].date); const wd=WEEK[new Date(2026,first.mo-1,first.d).getDay()];
+    const head=`<span class="wd">${wd}</span>${daySel===tk?'<span class="today">hoje</span>':""}<span class="cnt">${ids.length} jogo${ids.length>1?"s":""}</span>`;
+    c.innerHTML = subseg + section(`${first.d} de ${MONTHN[first.mo-1]}`, rankingTableHTML(sid, rankComps(ids)), head);
+  } else if(view==="jogos"){
+    const done=MATCHES.filter(m=>real[m.id]).sort((a,b)=>parseDate(a.date).sort-parseDate(b.date).sort);
+    if(!done.length){ c.innerHTML=`<div class="empty">Nenhum jogo concluído ainda. Preencha a coluna <b>Real</b> da planilha e importe.</div>`; return; }
+    const byDate={}; done.forEach(m=>{ const k=parseDate(m.date).key; (byDate[k]=byDate[k]||[]).push(m); });
+    const keys=Object.keys(byDate).sort((a,b)=>{ const pa=parseDate(byDate[a][0].date), pb=parseDate(byDate[b][0].date); return (pa.mo-pb.mo)||(pa.d-pb.d); });
+    const tk=todayKey(); let html="";
+    keys.forEach(k=>{
+      const list=byDate[k].sort((a,b)=>parseDate(a.date).sort-parseDate(b.date).sort);
+      const f=parseDate(list[0].date); const wd=WEEK[new Date(2026,f.mo-1,f.d).getDay()];
+      const head=`<span class="wd">${wd}</span>${k===tk?'<span class="today">hoje</span>':""}<span class="cnt">${list.length} jogo${list.length>1?"s":""}</span>`;
+      const games=list.map(m=>{ const rv=real[m.id];
+        return `<div class="gline">
+          <span class="gbadge">Grupo ${m.group}</span>
+          <span class="gmatch"><span class="fl">${flag(m.home)}</span>${m.home} <b class="gscore">${rv.h} x ${rv.a}</b> ${m.away}<span class="fl">${flag(m.away)}</span></span>
+          <span class="gtime">${(m.date.split(" ")[1]||"")}</span>
+        </div>`; }).join("");
+      html+=section(`${f.d} de ${MONTHN[f.mo-1]}`, `<div class="glist">${games}</div>`, head);
+    });
+    c.innerHTML=html;
+  }
+}
+
+/* ---------- EVENTOS ---------- */
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2100); }
+$("#viewSeg").addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b)return;
+  view=b.dataset.v; $("#viewSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); render(); });
+
+const CAN_HOVER = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+function openDetail(r){ const det=r.nextElementSibling; if(!det||!det.classList.contains("detailrow")) return;
+  det.querySelector(".detailbox").innerHTML = buildDetail(+r.dataset.ci, r.dataset.scope);
+  det.removeAttribute("hidden"); r.classList.add("open"); }
+function closeDetail(r){ const det=r.nextElementSibling; if(!det||!det.classList.contains("detailrow")) return;
+  det.setAttribute("hidden",""); r.classList.remove("open"); }
+let hoverRow=null;
+function closeHover(){ if(hoverRow){ closeDetail(hoverRow); hoverRow=null; } }
+
+$("#content").addEventListener("click",e=>{
+  const rb=e.target.closest("button[data-round]");
+  if(rb){ roundSel=+rb.dataset.round; render(); return; }
+  if(CAN_HOVER) return;                       // no PC o detalhe abre com o mouse
+  const r=e.target.closest("tr.rk"); if(!r) return;   // no celular: toque abre/fecha
+  const det=r.nextElementSibling; if(!det||!det.classList.contains("detailrow")) return;
+  if(det.hasAttribute("hidden")) openDetail(r); else closeDetail(r);
+});
+$("#content").addEventListener("mouseover",e=>{
+  if(!CAN_HOVER) return;
+  const r=e.target.closest("tr.rk"); if(!r || r===hoverRow) return;
+  closeHover(); openDetail(r); hoverRow=r;
+});
+$("#content").addEventListener("mouseout",e=>{
+  if(!CAN_HOVER || !hoverRow) return;
+  const to=e.relatedTarget;
+  if(to && to.closest && to.closest(".rsec")) return;   // ainda dentro do quadro: mantém aberto
+  closeHover();
+});
+$("#content").addEventListener("change",e=>{
+  if(e.target && e.target.id==="daySel"){ daySel=e.target.value; render(); }
+});
+
+/* ---------- FILTRO DE CONCORRENTES ---------- */
+function updateFilterLabel(){ $("#filterBtn").textContent = `Concorrentes (${selected.size}/${competitors.length}) ▾`; }
+function refreshFilterUI(){
+  const items=competitors.map((c,i)=>
+    `<label><input type="checkbox" data-fi="${i}" ${selected.has(i)?"checked":""}><span>${c.name}</span></label>`).join("");
+  $("#filterPanel").innerHTML=`<div class="fhead"><button data-fall="1">Todos</button><button data-fall="0">Limpar</button></div>${items}`;
+  updateFilterLabel();
+}
+$("#filterBtn").addEventListener("click",e=>{ e.stopPropagation(); refreshFilterUI(); $("#filterPanel").toggleAttribute("hidden"); });
+$("#filterPanel").addEventListener("click",e=>{
+  e.stopPropagation();
+  const b=e.target.closest("button[data-fall]"); if(!b) return;
+  selected = b.dataset.fall==="1" ? new Set(competitors.map((_,i)=>i)) : new Set();
+  refreshFilterUI(); render();
+});
+$("#filterPanel").addEventListener("change",e=>{
+  const cb=e.target.closest("input[data-fi]"); if(!cb) return;
+  const i=+cb.dataset.fi; cb.checked?selected.add(i):selected.delete(i);
+  updateFilterLabel(); render();
+});
+document.addEventListener("click",()=>{ const p=$("#filterPanel"); if(p && !p.hasAttribute("hidden")) p.setAttribute("hidden",""); });
+
+/* ---------- IMPORTAR / MODELO ---------- */
+function csvToAoa(text){ text=text.replace(/\r/g,"");
+  const first=(text.split("\n").find(l=>l.trim())||"");
+  const delim=(first.split(";").length>first.split(",").length)?";":",";
+  return text.split("\n").map(line=>{ const out=[]; let cur="",q=false;
+    for(let i=0;i<line.length;i++){const ch=line[i];
+      if(ch==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; }
+      else if(ch===delim&&!q){ out.push(cur); cur=""; } else cur+=ch; }
+    out.push(cur); return out; }); }
+function importLeague(aoa){
+  let hr=-1;
+  for(let i=0;i<aoa.length;i++){ const low=(aoa[i]||[]).map(c=>String(c).trim().toLowerCase());
+    if(low.includes("id") && low.includes("real")){ hr=i; break; } }
+  if(hr<0){ toast("Cabeçalho não encontrado (preciso de colunas ID e Real)"); return; }
+  const head=aoa[hr].map(c=>String(c==null?"":c).trim());
+  const low=head.map(h=>h.toLowerCase());
+  const idCol=low.indexOf("id"), realCol=low.indexOf("real");
+  const compCols=[]; for(let c=realCol+1;c<head.length;c++){ if(head[c]) compCols.push({c,name:head[c]}); }
+  if(!compCols.length){ toast("Nenhuma coluna de concorrente após 'Real'"); return; }
+  const newReal={}; const comps=compCols.map(cc=>({name:cc.name, palp:{}, _c:cc.c, _has:false}));
+  for(let i=hr+1;i<aoa.length;i++){ const row=aoa[i]; if(!row) continue;
+    const id=String(row[idCol]||"").trim(); if(!/^m\d+$/.test(id)) continue;
+    const rv=parseScore(row[realCol]); if(rv) newReal[id]=rv;
+    comps.forEach(cp=>{ const v=parseScore(row[cp._c]); if(v){ cp.palp[id]=v; cp._has=true; } });
+  }
+  const keep=comps.filter(c=> c._has || !/^competidor\s*\d+$/i.test(c.name.trim()))
+                  .map(c=>({name:c.name, palp:c.palp}));
+  if(!keep.length){ toast("Não encontrei concorrentes (renomeie as colunas ou preencha palpites)"); return; }
+  real=newReal; competitors=keep; selected=new Set(keep.map((_,i)=>i)); refreshFilterUI(); render();
+  toast(keep.length+" concorrente(s) importado(s) ✓");
+}
+$("#importBtn").addEventListener("click",()=>$("#importFile").click());
+$("#importFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f)return; const name=(f.name||"").toLowerCase(); const rd=new FileReader();
+  const done=()=>{ e.target.value=""; };
+  if(name.endsWith(".csv")){ rd.onload=()=>{ try{ importLeague(csvToAoa(rd.result)); }catch(err){ toast("CSV inválido"); } done(); }; rd.readAsText(f); }
+  else if(name.endsWith(".xlsx")||name.endsWith(".xls")){
+    if(typeof XLSX==="undefined"){ toast("Conecte à internet uma vez p/ ler Excel — ou salve como CSV"); done(); return; }
+    rd.onload=()=>{ try{ const wb=XLSX.read(new Uint8Array(rd.result),{type:"array"});
+      const sn=wb.SheetNames.find(n=>/palp/i.test(n))||wb.SheetNames[0];
+      importLeague(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1}));
+    }catch(err){ toast("Não consegui ler a planilha"); } done(); }; rd.readAsArrayBuffer(f);
+  } else { toast("Use .xlsx ou .csv"); done(); }
+});
+function exportStyledXlsx(o){
+  const H=o.headers, ncols=H.length;
+  const aoa=[[o.title],[o.instr],H,...o.data];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  const enc=XLSX.utils.encode_cell;
+  const thin={style:"thin",color:{rgb:"C9D2E3"}}, border={top:thin,bottom:thin,left:thin,right:thin};
+  const yellow=new Set(o.yellowCols||[]);
+  const idCol=H.indexOf("ID"), mandCol=H.indexOf("Mandante"), visCol=H.indexOf("Visitante");
+  const C=(r,c)=>ws[enc({r,c})];
+  if(C(0,0)) C(0,0).s={fill:{fgColor:{rgb:"F3B53C"}},font:{name:"Arial",bold:true,sz:14,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center"}};
+  if(C(1,0)) C(1,0).s={font:{name:"Arial",sz:9,color:{rgb:"6B7794"}},alignment:{horizontal:"left",vertical:"center",wrapText:true}};
+  for(let c=0;c<ncols;c++){ const cl=C(2,c); if(cl) cl.s={fill:{fgColor:{rgb:"1D2C4D"}},font:{name:"Arial",bold:true,sz:10.5,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center"},border}; }
+  for(let r=0;r<o.data.length;r++) for(let c=0;c<ncols;c++){
+    const cell=C(3+r,c); if(!cell) continue;
+    const isReal=(c===o.realCol), isY=yellow.has(c)||isReal;
+    const al = c===mandCol?"right":(c===visCol?"left":"center");
+    let fill;
+    if(isReal) fill={fgColor:{rgb:"FCE3C0"}};
+    else if(isY) fill={fgColor:{rgb:"FFF7DD"}};
+    else if(r%2===1 && c<=idCol) fill={fgColor:{rgb:"F2F5FA"}};
+    cell.s={border,
+      font:{name:"Arial", sz:isY?11:10, bold:isY, color:{rgb: isReal?"8A4B0B":(isY?"1D2C4D":(c===idCol?"9AA6BE":"1D2C4D"))}},
+      alignment:{horizontal:al, vertical:"center"}, fill};
+  }
+  ws["!cols"]=o.widths.map(w=>({wch:w}));
+  ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:ncols-1}},{s:{r:1,c:0},e:{r:1,c:ncols-1}}];
+  ws["!rows"]=[{hpt:26},{hpt:30},{hpt:24}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,o.sheet);
+  XLSX.writeFile(wb,o.file);
+}
+$("#modelBtn").addEventListener("click",()=>{
+  if(typeof XLSX==="undefined"){ toast("Conecte à internet uma vez para gerar o modelo"); return; }
+  const WD=["dom","seg","ter","qua","qui","sex","sáb"]; const NC=15;
+  const headers=["Data","Dia","Hora","Grupo","Rod.","Mandante","Visitante","ID","Real","Você"];
+  for(let i=2;i<=NC;i++) headers.push("Competidor "+i);
+  const data=MATCHES.slice().sort((a,b)=>parseDate(a.date).sort-parseDate(b.date).sort).map(m=>{
+    const p=parseDate(m.date);
+    const line=[p.key, WD[new Date(2026,p.mo-1,p.d).getDay()], m.date.split(" ")[1], m.group, m.round, m.home, m.away, m.id, "", m.ph+"x"+m.pa];
+    for(let i=2;i<=NC;i++) line.push("");
+    return line;
+  });
+  const realCol=headers.indexOf("Real");
+  const yellowCols=[]; for(let c=headers.indexOf("Você"); c<headers.length; c++) yellowCols.push(c);
+  exportStyledXlsx({ file:"bolao-liga-palpites.xlsx", sheet:"Palpites",
+    title:"BOLÃO COPA 2026 — LIGA (PALPITES DOS CONCORRENTES)",
+    instr:"Renomeie os cabeçalhos 'Competidor 2..15' com o nome de cada um. Em cada célula escreva o placar no formato 2x1 (use a letra x). Coluna 'Real' = resultado do jogo. Não mexa nas colunas Mandante, Visitante e ID. Depois importe no HTML da liga.",
+    headers, data, widths:[8,5,7,7,6,16,16,7,8].concat(Array(NC).fill(12)),
+    realCol, yellowCols });
+  toast("Modelo gerado ✓");
+});
+
+/* ===== PALPITES EMBUTIDOS (pré-preenchido) ===== */
+const LEAGUE_DATA=[["BOLÃO COPA 2026 — LIGA (PALPITES DOS CONCORRENTES)", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["Placar no formato 2x1 (use a letra x). Coluna 'Real' = resultado do jogo. Não mexa em Mandante, Visitante e ID. Importe no HTML da liga.", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["Data", "Dia", "Hora", "Grupo", "Rod.", "Mandante", "Visitante", "ID", "Real", "Marques", "Emerson", "Guilherme", "Mirela", "Alexandre", "Deivid", "Francisco", "Dani", "Evandro", "Miguel", "Miliane", "Vinícius", "Guilherme Azeredo", "Leonardo", "Marcilene", "Dhiullyanna", "Claudino", "Rholander", "Contos", "Gustavo", "Vanuza", "Renata", "Klebson", "Livia", "Jeans", "Rodrigo", "Brenin", "Amarildo", "Wanderson", "Arthur", "Luciana", "Joana", "Júlia", "Leandro", "Anna", "Raquel", "Agata", "Tânia"], ["11/06", "qui", "16:00", "A", 1, "México", "África do Sul", "m0", "2x0", "2x0", "2x1", "2x0", "2x0", "2x1", "2x1", "2x0", "2x0", "2x0", "2x1", "2x0", "2x1", "2x0", "2x1", "2x0", "2x0", "2x0", "2x1", "2x1", "2x0", "1x2", "3x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["11/06", "qui", "23:00", "A", 1, "Coreia do Sul", "Rep. Tcheca", "m1", "2x1", "1x1", "1x1", "0x0", "1x0", "1x0", "1x1", null, "1x0", "1x0", "1x1", "1x1", "1x1", "2x1", "1x1", "1x1", "2x1", "1x1", null, null, "2x1", "1x1", "2x1", "1x1", "0x2", "0x2", "2x1", "1x1", "1x2", null, null, null, null, null, null, null, null, null, null], ["12/06", "sex", "16:00", "B", 1, "Canadá", "Bósnia", "m2", null, "2x1", "1x1", "1x1", "2x2", "1x0", "2x0", "1x0", "1x0", null, "2x1", "2x1", "1x1", "1x0", "1x1", "1x1", "2x1", null, null, null, "0x1", "1x0", "2x0", null, "1x1", "1x0", "2x1", "2x0", null, null, null, null, null, null, null, null, null, null, null], ["12/06", "sex", "22:00", "D", 1, "Estados Unidos", "Paraguai", "m7", null, "2x1", null, "1x1", "3x1", "3x1", null, null, null, null, "2x1", "1x1", "2x1", "1x1", "2x1", null, "2x1", null, null, null, null, "2x1", "3x1", "2x1", null, "1x2", "2x1", "1x1", null, "1x0", null, null, null, null, null, null, null, null, null], ["13/06", "sáb", "16:00", "B", 1, "Catar", "Suíça", "m3", null, "0x2", "0x3", "0x1", "0x3", "1x2", "0x2", null, "0x2", null, "0x2", "0x2", "0x2", "0x2", "0x1", "0x2", "0x3", null, null, null, "0x2", "1x1", null, "1x3", "0x2", "0x1", "2x1", "0x2", null, "0x1", null, null, null, null, null, null, null, null, null], ["13/06", "sáb", "19:00", "C", 1, "Brasil", "Marrocos", "m4", null, "1x0", "2x1", "1x0", "1x1", "2x1", null, null, "2x1", "2x1", "2x1", "2x1", null, "2x1", "1x0", null, null, "2x1", null, null, "2x1", "2x1", null, "2x0", "3x1", "2x0", "3x2", "2x1", null, "1x0", "3x1", null, null, null, null, null, null, null, null], ["13/06", "sáb", "22:00", "C", 1, "Haiti", "Escócia", "m5", null, "0x2", "1x3", "0x1", "0x2", "0x1", null, null, null, "2x0", "0x2", "0x2", "0x3", "1x1", "0x3", null, "0x2", null, null, null, null, "1x1", null, null, null, "0x0", "1x2", null, null, "0x1", "0x2", "2x1", null, null, null, null, null, null, null], ["14/06", "dom", "01:00", "D", 1, "Austrália", "Turquia", "m6", null, "1x2", "0x2", "1x2", "2x2", "2x0", null, null, null, null, "1x1", "1x1", "1x2", "0x2", "0x1", null, "1x2", null, null, null, null, "1x1", null, "1x0", "2x3", null, "3x2", "0x2", null, "0x1", null, null, null, null, null, null, null, null, null], ["14/06", "dom", "14:00", "E", 1, "Alemanha", "Curaçao", "m8", null, "3x0", "4x0", "4x0", "5x0", "2x0", null, "3x0", null, null, "4x0", "3x0", "3x0", "5x0", "4x0", null, null, null, null, null, null, "1x0", null, "5x1", null, "2x0", "3x2", "5x0", null, "3x0", null, null, "3x0", null, null, null, null, null, null], ["14/06", "dom", "17:00", "F", 1, "Holanda", "Japão", "m10", null, "2x1", "1x2", "2x1", "2x2", "1x1", null, "2x1", null, null, "2x1", "2x1", "2x1", null, "1x1", null, null, null, null, null, null, "1x1", null, "3x1", "1x2", "2x1", "1x2", "2x1", null, "1x0", null, null, null, "2x2", null, null, null, null, null], ["14/06", "dom", "20:00", "E", 1, "Costa do Marfim", "Equador", "m9", null, "1x1", "1x1", "1x1", "4x2", "1x1", null, null, null, null, "1x1", "1x1", "1x1", null, "2x2", null, null, null, null, null, "0x2", "0x1", null, "1x2", "3x3", null, "1x2", "1x2", null, "0x1", null, null, "2x1", null, null, null, null, null, null], ["14/06", "dom", "23:00", "F", 1, "Suécia", "Tunísia", "m11", null, "1x0", "2x1", "2x1", "1x0", "0x1", null, null, null, null, "1x0", "1x0", "1x0", null, "2x0", null, null, null, null, null, null, "1x2", null, "3x2", "1x0", "1x0", "2x1", "1x1", null, "2x0", null, null, "1x0", null, null, null, null, null, null], ["15/06", "seg", "13:00", "H", 1, "Espanha", "Cabo Verde", "m14", null, "3x0", "4x0", "4x0", "6x0", "2x1", null, null, null, null, "3x0", "3x0", "3x0", null, "5x0", "3x0", null, null, null, null, "5x1", "2x0", null, "4x0", null, "3x0", "3x2", null, null, "3x0", null, null, "4x0", null, null, null, null, null, null], ["15/06", "seg", "16:00", "G", 1, "Bélgica", "Egito", "m12", null, "2x1", "2x1", "1x0", "2x1", "2x1", null, null, null, null, "2x0", "2x0", "2x1", null, "2x0", "2x1", null, null, null, null, null, "2x1", null, "4x1", null, "2x0", "2x1", "3x1", null, "3x0", null, null, "2x1", null, "2x0", null, null, null, null], ["15/06", "seg", "19:00", "H", 1, "Arábia Saudita", "Uruguai", "m15", null, "0x2", "0x2", "1x2", "0x2", "0x0", null, null, null, null, "1x2", "0x2", "0x2", null, "2x2", "1x1", null, null, null, null, null, "2x0", null, "1x3", null, "0x1", "1x3", "1x1", null, "1x3", null, null, "1x1", null, null, null, null, null, null], ["15/06", "seg", "22:00", "G", 1, "Irã", "Nova Zelândia", "m13", null, "1x0", "1x1", "1x0", "0x0", "0x1", null, null, null, null, "1x0", "2x0", "1x0", null, "1x0", null, null, null, null, null, null, "1x1", null, "1x2", null, null, "1x2", "0x1", null, "2x0", null, null, "1x1", null, null, null, null, null, null], ["16/06", "ter", "16:00", "I", 1, "França", "Senegal", "m16", null, "2x0", "3x1", "2x1", null, "2x1", null, "2x0", null, null, "2x0", "2x0", "2x1", null, "3x1", "3x1", null, null, null, null, null, "2x2", null, "2x1", "2x1", "2x0", "3x1", "3x1", null, null, null, null, null, null, null, null, null, null, null], ["16/06", "ter", "19:00", "I", 1, "Iraque", "Noruega", "m17", null, "0x3", "0x3", "0x1", null, "0x1", null, "0x1", null, null, "0x2", "0x2", "1x2", null, "0x1", "0x2", null, null, null, null, null, "1x0", null, "0x2", "0x2", "0x1", "1x2", "0x1", null, null, null, null, null, null, null, null, null, null, null], ["16/06", "ter", "22:00", "J", 1, "Argentina", "Argélia", "m18", null, "2x0", "3x1", "1x0", null, "3x1", null, "2x0", null, null, "3x0", "3x0", "2x0", null, "2x0", null, null, null, null, null, "2x0", "3x1", null, "4x2", "2x0", "2x0", "3x1", null, null, "2x0", null, null, null, null, null, null, null, null, null], ["17/06", "qua", "01:00", "J", 1, "Áustria", "Jordânia", "m19", null, "2x0", "3x0", "2x1", null, "0x1", null, "1x0", null, null, "2x0", "2x0", "2x0", null, "2x1", null, null, null, null, null, null, "1x2", null, "2x0", "1x1", null, "2x1", null, null, "1x0", null, null, null, null, null, "2x1", null, null, null], ["17/06", "qua", "14:00", "K", 1, "Portugal", "RD Congo", "m20", null, "2x0", "3x0", "3x0", null, "2x0", null, null, "2x0", null, "3x0", "3x0", "3x0", null, "3x0", null, null, null, null, null, null, "1x2", null, "3x0", "2x0", "2x0", "3x1", "5x0", null, null, null, null, null, null, null, null, null, null, null], ["17/06", "qua", "17:00", "L", 1, "Inglaterra", "Croácia", "m22", null, "1x1", "2x1", "2x1", null, "2x2", "2x1", null, null, null, "1x1", "2x1", "2x1", null, "2x2", "3x1", null, null, null, null, null, "2x1", "2x1", "2x2", null, "1x1", "3x2", "2x1", null, null, null, null, null, null, null, null, null, null, null], ["17/06", "qua", "20:00", "L", 1, "Gana", "Panamá", "m23", null, "2x1", "0x0", "1x0", null, "0x1", null, null, null, null, "2x1", "2x1", "2x0", null, "3x1", null, null, null, null, null, "1x1", "2x1", null, "2x1", null, "1x0", "2x3", "2x0", null, null, null, null, null, null, null, null, null, null, null], ["17/06", "qua", "23:00", "K", 1, "Uzbequistão", "Colômbia", "m21", null, "0x2", "0x3", "0x2", null, "1x1", null, null, "0x2", null, "1x2", "1x2", null, null, "1x2", null, null, null, null, null, null, "1x1", "1x2", "0x4", "1x3", "0x1", "1x2", "0x3", null, null, null, null, null, null, null, null, null, null, null], ["18/06", "qui", "13:00", "A", 2, "Rep. Tcheca", "África do Sul", "m24", null, "1x0", "1x1", "1x0", null, "1x1", "1x0", "1x2", null, null, "1x2", null, "1x0", null, null, "2x0", null, null, null, null, null, "2x2", null, "3x1", "1x1", "1x2", "1x2", null, null, null, null, null, null, null, null, null, null, null, null], ["18/06", "qui", "16:00", "B", 2, "Suíça", "Bósnia", "m26", null, "1x0", "2x2", "1x1", "1x1", "2x0", "1x0", "1x0", null, null, "2x1", null, null, null, null, "2x1", null, null, null, null, "3x1", "1x1", null, null, "2x0", null, "2x1", null, null, "0x0", null, null, null, null, null, null, null, null, null], ["18/06", "qui", "19:00", "B", 2, "Canadá", "Catar", "m27", null, "2x0", "4x0", "2x0", "4x0", "2x2", "2x1", null, null, null, "3x0", null, "2x1", null, null, null, null, "1x1", null, null, "0x1", "1x2", null, "2x0", "0x0", null, "2x3", "2x1", null, null, null, null, null, null, null, null, null, null, null], ["18/06", "qui", "22:00", "A", 2, "México", "Coreia do Sul", "m25", null, "2x1", "1x2", "1x1", "2x1", "1x2", "2x0", "1x2", null, null, "1x1", null, "2x1", null, null, "1x1", null, null, null, null, "2x2", "1x2", null, null, "1x0", "2x0", "3x1", null, null, null, null, null, null, null, null, null, null, null, null], ["19/06", "sex", "16:00", "D", 2, "Estados Unidos", "Austrália", "m30", null, "2x0", "3x1", "1x0", null, "2x3", "2x1", null, null, null, "2x1", null, "2x0", null, null, "2x0", null, "2x1", null, null, "1x1", "2x3", null, "1x0", null, "1x1", "1x2", null, null, null, null, "2x1", null, null, null, null, null, null, null], ["19/06", "sex", "19:00", "C", 2, "Escócia", "Marrocos", "m28", null, "0x1", "2x3", "1x0", "0x2", "1x2", "1x1", null, null, null, "1x2", null, "1x1", null, null, "2x1", null, "1x2", null, null, "1x3", "1x1", null, "2x3", "0x1", "1x1", "1x2", null, null, null, null, null, null, null, null, null, null, null, null], ["19/06", "sex", "21:30", "C", 2, "Brasil", "Haiti", "m29", null, "4x0", "5x0", "3x0", "4x0", "2x1", "4x0", null, null, null, "4x0", null, "4x0", null, null, "2x0", null, null, null, null, null, "2x2", null, null, null, "2x0", "3x2", null, null, null, null, null, null, null, null, null, null, null, null], ["20/06", "sáb", "01:00", "D", 2, "Turquia", "Paraguai", "m31", null, "1x1", null, "2x1", null, "1x0", "2x1", "1x2", null, null, "1x1", null, "3x1", null, null, "2x1", null, "2x1", null, null, "1x1", "1x1", null, null, "2x2", "0x1", "1x2", null, null, null, null, "1x1", null, null, null, null, "2x3", null, null], ["20/06", "sáb", "14:00", "F", 2, "Holanda", "Suécia", "m34", null, "1x1", "2x0", "2x1", null, "1x3", null, "1x0", null, null, "2x1", null, null, null, null, "2x1", null, null, null, null, "2x1", "2x1", null, null, null, "2x1", "2x1", "2x1", null, null, null, "2x1", null, null, null, null, null, null, null], ["20/06", "sáb", "17:00", "E", 2, "Alemanha", "Costa do Marfim", "m32", null, "2x1", null, "2x1", null, "2x1", "2x1", null, null, null, "2x0", null, null, null, null, "2x0", null, "2x0", null, null, "3x0", "1x1", null, null, null, null, "3x2", null, null, null, null, null, null, null, null, null, "3x1", null, null], ["20/06", "sáb", "21:00", "E", 2, "Equador", "Curaçao", "m33", null, "2x0", "2x0", null, null, "2x1", "2x0", null, null, null, "3x0", null, null, null, null, "1x0", null, "2x0", null, null, "3x0", "2x0", null, null, "2x0", "2x0", "2x1", null, null, "3x0", null, "2x0", null, null, null, null, "2x4", null, null], ["21/06", "dom", "01:00", "F", 2, "Tunísia", "Japão", "m35", null, "0x2", null, "1x1", null, "1x1", "1x2", null, null, null, "1x2", null, null, null, null, "0x2", null, "0x2", null, null, null, "1x2", null, null, "0x2", "0x1", "1x2", "2x2", null, null, null, null, null, null, null, null, "2x0", null, null], ["21/06", "dom", "16:00", "G", 2, "Bélgica", "Irã", "m36", null, "2x0", "3x1", "2x1", null, "2x1", "2x0", "2x0", null, null, "2x0", null, null, null, null, "2x2", null, "2x0", null, null, "2x1", "2x1", null, null, null, "2x0", "2x1", "3x0", null, "2x0", null, "2x1", null, null, null, null, "3x2", "3x0", null], ["21/06", "dom", "19:00", "H", 2, "Espanha", "Arábia Saudita", "m38", null, "2x0", "4x0", "2x0", null, "2x1", null, null, null, null, "3x1", null, null, null, null, "2x1", null, null, null, null, "3x0", "1x1", null, null, null, "2x0", "3x2", "2x0", null, null, null, "2x0", null, null, null, null, "3x1", "3x0", null], ["21/06", "dom", "19:00", "H", 2, "Uruguai", "Cabo Verde", "m39", null, "2x0", "3x0", "1x0", "2x0", "1x0", "2x0", "1x0", null, null, "2x0", null, null, null, null, "1x1", null, "3x0", null, null, "2x0", "1x1", null, null, "1x0", null, "3x2", "3x0", null, "2x0", null, "3x0", null, null, null, null, "2x3", null, null], ["21/06", "dom", "22:00", "G", 2, "Nova Zelândia", "Egito", "m37", null, "0x1", "2x3", "1x1", null, "1x1", "0x1", "0x1", null, null, "1x2", null, null, null, null, "0x1", null, "1x2", null, null, null, "2x1", null, null, "0x2", null, "2x1", "0x2", null, "0x1", null, "0x1", null, null, null, null, "3x2", "1x1", null], ["22/06", "seg", "14:00", "J", 2, "Argentina", "Áustria", "m43", null, "1x1", "3x2", "2x1", "3x1", "2x1", "2x0", null, null, null, "2x0", null, null, null, null, "2x1", null, "3x1", null, null, "3x1", "3x2", null, null, null, "2x0", "2x1", null, null, null, null, "2x1", null, null, null, null, "4x2", null, null], ["22/06", "seg", "18:00", "I", 2, "França", "Iraque", "m40", null, "3x0", "3x0", "4x0", "3x1", "3x1", "3x0", null, null, null, "4x0", null, null, null, null, "2x0", null, "3x0", null, null, "4x0", "2x0", null, null, null, "3x0", "3x1", "6x0", null, "3x0", null, "3x0", null, null, null, null, "3x2", null, null], ["22/06", "seg", "21:00", "I", 2, "Noruega", "Senegal", "m41", null, "2x1", "2x2", "1x0", "2x2", "2x1", "2x1", null, null, null, "2x2", null, null, null, null, "2x1", null, "2x1", null, null, null, "1x3", null, null, null, null, "2x1", "1x2", null, null, null, "1x2", null, null, null, null, "3x2", null, null], ["22/06", "seg", "23:00", "J", 2, "Jordânia", "Argélia", "m42", null, "0x2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["23/06", "ter", "14:00", "K", 2, "Portugal", "Uzbequistão", "m44", null, "2x0", "3x0", "2x0", null, "2x1", "2x0", null, null, null, "3x0", null, null, null, null, "3x0", null, "2x0", null, null, "5x0", "1x2", null, null, null, "2x0", "2x1", null, null, null, null, "3x0", null, null, null, null, "3x1", null, null], ["23/06", "ter", "17:00", "L", 2, "Inglaterra", "Gana", "m46", null, "2x0", "2x0", "1x0", null, "3x1", "2x0", null, null, null, "2x0", null, null, null, null, "3x1", null, null, null, null, "3x1", "1x3", null, null, null, "1x0", "2x1", "3x1", null, null, null, "2x0", null, null, null, null, "3x2", null, null], ["23/06", "ter", "20:00", "L", 2, "Panamá", "Croácia", "m47", null, "0x2", "1x2", "0x1", null, "0x3", "0x2", "1x2", null, null, "0x2", null, null, null, null, "0x1", null, "0x3", null, null, null, "0x2", null, null, null, "0x2", "1x2", "0x2", null, null, null, "0x2", null, null, null, null, "2x0", null, null], ["23/06", "ter", "23:00", "K", 2, "Colômbia", "RD Congo", "m45", null, "2x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "16:00", "B", 3, "Canadá", "Suíça", "m50", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "16:00", "B", 3, "Bósnia", "Catar", "m51", null, "2x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "19:00", "C", 3, "Escócia", "Brasil", "m52", null, "0x2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "19:00", "C", 3, "Marrocos", "Haiti", "m53", null, "3x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "22:00", "A", 3, "África do Sul", "Coreia do Sul", "m48", null, "0x2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["24/06", "qua", "22:00", "A", 3, "México", "Rep. Tcheca", "m49", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "17:00", "E", 3, "Curaçao", "Costa do Marfim", "m56", null, "0x2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "17:00", "E", 3, "Equador", "Alemanha", "m57", null, "0x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "20:00", "F", 3, "Japão", "Suécia", "m58", null, "1x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "20:00", "F", 3, "Tunísia", "Holanda", "m59", null, "0x2", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "23:00", "D", 3, "Paraguai", "Austrália", "m54", null, "1x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["25/06", "qui", "23:00", "D", 3, "Estados Unidos", "Turquia", "m55", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["26/06", "sex", "16:00", "I", 3, "Noruega", "França", "m64", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["26/06", "sex", "16:00", "I", 3, "Senegal", "Iraque", "m65", null, "2x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["26/06", "sex", "19:00", "H", 3, "Uruguai", "Espanha", "m62", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["26/06", "sex", "21:00", "H", 3, "Cabo Verde", "Arábia Saudita", "m63", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "00:00", "G", 3, "Nova Zelândia", "Bélgica", "m60", null, "0x3", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "00:00", "G", 3, "Egito", "Irã", "m61", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "18:00", "L", 3, "Croácia", "Gana", "m70", null, "1x0", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "18:00", "L", 3, "Panamá", "Inglaterra", "m71", null, "0x3", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "20:30", "K", 3, "Colômbia", "Portugal", "m68", null, "1x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "20:30", "K", 3, "RD Congo", "Uzbequistão", "m69", null, "0x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "23:00", "J", 3, "Argélia", "Áustria", "m66", null, "0x1", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], ["27/06", "sáb", "23:00", "J", 3, "Jordânia", "Argentina", "m67", null, "0x4", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]];
+try{ importLeague(LEAGUE_DATA); }catch(e){ refreshFilterUI(); render(); }
+</script>
+
+<script>
 async function autoResultados() {
   const apiKey = "1756f2862df342c29002f128a7f5b70a";
-
   try {
-    const res = await fetch(
-      "https://api.football-data.org/v4/matches",
-      {
-        headers: { "X-Auth-Token": apiKey }
-      }
-    );
-
+    const res = await fetch("https://api.football-data.org/v4/matches", {
+      headers: { "X-Auth-Token": apiKey }
+    });
     const data = await res.json();
+    const jogosFinalizados = data.matches.filter(m => m.status === "FINISHED");
 
-    MATCHES.forEach(m => {
-      const home = normalizar(m.home);
-      const away = normalizar(m.away);
-
-      const jogo = data.matches.find(j => {
-        const apiHome = normalizar(j.homeTeam.name);
-        const apiAway = normalizar(j.awayTeam.name);
-
-        return apiHome.includes(home) && apiAway.includes(away);
-      });
-
-      if (!jogo) return;
-      if (jogo.status !== "FINISHED") return;
-
-      if (!results[m.id]) {
-        results[m.id] = { h: null, a: null };
+    jogosFinalizados.forEach((jogo, i) => {
+      if (!MATCHES[i]) return;
+      if (!results[MATCHES[i].id]) {
+        results[MATCHES[i].id] = {h: null, a: null};
       }
-
-      results[m.id].h = jogo.score.fullTime.home;
-      results[m.id].a = jogo.score.fullTime.away;
+      results[MATCHES[i].id].h = jogo.score.fullTime.home;
+      results[MATCHES[i].id].a = jogo.score.fullTime.away;
     });
 
     save();
     render();
-
-    console.log("✅ Agora sim tentando casar jogos");
-
   } catch (e) {
-    console.log(e);
+    console.error("Erro API:", e);
   }
 }
 
-autoResultados();
-setInterval(autoResultados, 30000);
+window.addEventListener('load', () => {
+  autoResultados();
+  setInterval(autoResultados, 30000);
+});
+</script>
+
+</body>
+</html>
