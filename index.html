@@ -606,32 +606,38 @@ try{ importLeague(LEAGUE_DATA); }catch(e){ refreshFilterUI(); render(); }
 async function autoResultados() {
   const apiKey = "1756f2862df342c29002f128a7f5b70a";
   try {
-    const res = await fetch("https://api.football-data.org/v4/matches", {
-      headers: { "X-Auth-Token": apiKey }
+    const res = await fetch("https://v2.football.sportsapipro.com/api/world-cup-2026/matches", {
+      headers: { "x-api-key": apiKey }
     });
-    const data = await res.json();
-    const jogosFinalizados = data.matches.filter(m => m.status === "FINISHED");
 
-    jogosFinalizados.forEach((jogo, i) => {
-      if (!MATCHES[i]) return;
-      if (!results[MATCHES[i].id]) {
-        results[MATCHES[i].id] = {h: null, a: null};
+    const data = await res.json();
+    const jogos = data.data || [];
+
+    MATCHES.forEach(m => {
+      const jogo = jogos.find(j =>
+        j.home_team === m.home && j.away_team === m.away
+      );
+
+      if (!jogo) return;
+      if (jogo.status !== "FT") return;
+
+      if (!results[m.id]) {
+        results[m.id] = {h:null,a:null};
       }
-      results[MATCHES[i].id].h = jogo.score.fullTime.home;
-      results[MATCHES[i].id].a = jogo.score.fullTime.away;
+
+      results[m.id].h = jogo.home_score;
+      results[m.id].a = jogo.away_score;
     });
 
     save();
     render();
-  } catch (e) {
-    console.error("Erro API:", e);
+  } catch(e) {
+    console.log(e);
   }
 }
 
-window.addEventListener('load', () => {
-  autoResultados();
-  setInterval(autoResultados, 30000);
-});
+autoResultados();
+setInterval(autoResultados,30000);
 </script>
 
 </body>
